@@ -14,8 +14,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.Enumeration;
 
-public class Connector extends org.apache.catalina.connector.Connector {
-    public Connector(Configuration configs) throws KeyStoreException, IOException, NoSuchAlgorithmException,
+class Connector extends org.apache.catalina.connector.Connector {
+    Connector(Configuration configs) throws KeyStoreException, IOException, NoSuchAlgorithmException,
             CertificateException {
         super();
 
@@ -44,6 +44,7 @@ public class Connector extends org.apache.catalina.connector.Connector {
             if (configs.getKeystoreDefaultAlias() != null){
                 this.setAttribute("keyAlias", configs.getKeystoreDefaultAlias());
             }
+
             this.setAttribute("keystorePass", configs.getKeystorePassword());
             this.setAttribute("keystoreType", store.getType());
             this.setAttribute("keystoreFile", new File(configs.getKeystoreFile()).getAbsolutePath());

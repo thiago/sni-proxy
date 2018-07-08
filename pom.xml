@@ -25,6 +25,11 @@
             <artifactId>commons-beanutils</artifactId>
             <version>1.9.3</version>
         </dependency>
+        <dependency>
+            <groupId>org.mitre.dsmiley.httpproxy</groupId>
+            <artifactId>smiley-http-proxy-servlet</artifactId>
+            <version>1.10</version>
+        </dependency>
     </dependencies>
     <build>
         <finalName>sniproxy</finalName>

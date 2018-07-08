@@ -4,10 +4,10 @@ import org.apache.commons.configuration2.XMLConfiguration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 
-import java.util.Iterator;
+import java.util.*;
 import java.util.logging.Logger;
 
-public class Configuration {
+class Configuration {
 
     private static final Logger LOGGER = Logger.getLogger(Configuration.class.getName());
     private Integer port = 8080;
@@ -17,13 +17,13 @@ public class Configuration {
     private String keystoreType = "JKS";
     private String keystorePassword = null;
     private String keystoreDefaultAlias = null;
-
+    private Map<String, Route> routes = new HashMap<String, Route>();
     private XMLConfiguration configs = new XMLConfiguration();
 
-    public Configuration() {
+    Configuration() {
     }
 
-    public void fromXML(String fileName) {
+    void fromXML(String fileName) {
 
         // Load configuration file
         Configurations configs = new Configurations();
@@ -49,41 +49,65 @@ public class Configuration {
                 LOGGER.warning("To enable support of SNI you must specify a keystore file");
             }
         }
+
+        // Load routes
+        List<Object> fqdns = this.configs.getList("routes.route.fqdn");
+        for (int i = 0; i < fqdns.size(); i++) {
+            String fqdn = this.configs.getString("routes.route(" + i + ").fqdn");
+            String[] targets = this.configs.getStringArray("routes.route(" + i + ").targets.target");
+            Boolean preserveCookies = this.configs.getBoolean("routes.route(" + i + ").preserveCookies", true);
+            Boolean preserveHost = this.configs.getBoolean("routes.route(" + i + ").preserveHost", true);
+            Boolean forwardIP = this.configs.getBoolean("routes.route(" + i + ").forwardIP", true);
+            Route route = new Route(fqdn, targets);
+            route.setForwardIP(forwardIP);
+            route.setPreserveCookies(preserveCookies);
+            route.setPreserveHost(preserveHost);
+            this.addRoute(route);
+        }
+
     }
 
-    public void setPort(Integer port) {
+    private void addRoute(Route route) {
+        this.routes.put(route.getFqdn(), route);
+    }
+
+    Route getRoute(String fqdn) {
+        return this.routes.get(fqdn);
+    }
+
+    void setPort(Integer port) {
         this.port = port;
     }
 
-    public void setHostname(String hostname) {
+    void setHostname(String hostname) {
         this.hostname = hostname;
     }
 
-    public Integer getPort() {
+    Integer getPort() {
         return port;
     }
 
-    public String getHostname() {
+    String getHostname() {
         return hostname;
     }
 
-    public Boolean getSniEnabled() {
+    Boolean getSniEnabled() {
         return sniEnabled;
     }
 
-    public String getKeystoreFile() {
+    String getKeystoreFile() {
         return keystoreFile;
     }
 
-    public String getKeystoreDefaultAlias() {
+    String getKeystoreDefaultAlias() {
         return this.keystoreDefaultAlias;
     }
 
-    public String getKeystoreType() {
+    String getKeystoreType() {
         return keystoreType;
     }
 
-    public String getKeystorePassword() {
+    String getKeystorePassword() {
         return keystorePassword;
     }
 }
