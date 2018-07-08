@@ -17,15 +17,11 @@ script:
 
 deploy:
   - provider: script
-    script:
-    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-    - docker-compose push app
+    script: chmod +x ./docker_push.sh && ./docker_push.sh
     on:
       branch: master
 
   - provider: script
-    script:
-    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-    - export DOCKER_IMAGE_VERSION=${TRAVIS_TAG/v/} docker-compose push app
+    script: chmod +x ./docker_push.sh && ./docker_push.sh
     on:
       tags: true
