@@ -1,3 +1,31 @@
 language: java
-sudo: false
-script: mvn clean compile package
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - export DOCKER_COMPOSE_VERSION=`curl -sLo /dev/null -w '%{url_effective}' https://github.com/docker/compose/releases/latest | rev | awk -F '/' '{print $1}' | rev`
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
+
+script:
+  - export DOCKER_IMAGE_VERSION=${TRAVIS_TAG/v/}
+  - docker-compose build app
+
+deploy:
+  - provider: script
+    script:
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    - docker-compose push app
+    on:
+      branch: master
+
+  - provider: script
+    script:
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    - export DOCKER_IMAGE_VERSION=${TRAVIS_TAG/v/} docker-compose push app
+    on:
+      tags: true
