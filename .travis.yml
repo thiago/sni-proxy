@@ -16,7 +16,7 @@ script:
 - docker-compose build app
 
 before_deploy:
-- CONTAINER_NAME=$(docker-compose up -d app echo)
+- CONTAINER_NAME=$(docker-compose run -d app echo)
 - docker cp $CONTAINER_NAME:/opt/app/sniproxy.jar .
 
 deploy:
