@@ -2,26 +2,38 @@ language: java
 sudo: required
 
 services:
-  - docker
+- docker
 
 before_install:
-  - export DOCKER_COMPOSE_VERSION=`curl -sLo /dev/null -w '%{url_effective}' https://github.com/docker/compose/releases/latest | rev | awk -F '/' '{print $1}' | rev`
-  - sudo rm /usr/local/bin/docker-compose
-  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
-  - chmod +x docker-compose
-  - sudo mv docker-compose /usr/local/bin
+- export DOCKER_COMPOSE_VERSION=`curl -sLo /dev/null -w '%{url_effective}' https://github.com/docker/compose/releases/latest | rev | awk -F '/' '{print $1}' | rev`
+- sudo rm /usr/local/bin/docker-compose
+- curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+- chmod +x docker-compose
+- sudo mv docker-compose /usr/local/bin
 
 script:
-  - export DOCKER_IMAGE_VERSION=${TRAVIS_TAG/v/}
-  - docker-compose build app
+- export DOCKER_IMAGE_VERSION=${TRAVIS_TAG/v/}
+- docker-compose build app
+
+before_deploy:
+- CONTAINER_NAME=$(docker-compose up -d app echo)
+- docker cp $CONTAINER_NAME:/opt/app/sniproxy.jar .
 
 deploy:
-  - provider: script
-    script: chmod +x ./docker_push.sh && ./docker_push.sh
-    on:
-      branch: master
+- provider: releases
+  api_key:
+    secure: wXJ7p+pwkGhlr0sQAerbcYcbQwMldGOG1ixMhzyJwW+C8zoWXlEYFSPAWMs7q0Ldvrjikqy5ZWrKHKL2XvZcUvMi6rjEUrRf0nTdXlinjFQvy6i3VD3UOadzz+P2J1zoibEgBUXSSfHQ+Qyb1lNt59GuUpH2nU9dlTJF0R8vay/LSTX+tCiGY5ANGGAc60KzU3xTOrWW1WqVp5j77MNL1ZzLvfziGxV4j/BvWKmQunQnl3cA1/pr9bPB9XC8fBj41DnsKDcYMudQesL72pMEedkue6PfhJ8iCzxNstaLlgaWiIqag/4+q8BiBAoXZv5w80JSHNLKuoQ32C2GEgdevzVZccLXzWwsoGH6okS9MECLFjA7HmlPlCJpxvU/NnO3rIgCM7qeHpwkuGeaPweTdTlBz0ccqC8T46mJs2SyPXS7EBtKPPHW4Zdw8hwb4Ke8ixVg5BsZX845mzqW+V4EQYhvEC279ZTmqSgLzLe9/dzDSqmH9Ve5S1qQTB8TqY2CqS7GB4+8nr2BQmMZ7CE1CIiuMhmXJ+0a06C99OzBvZ2jRrA8R14bQJHQtx36E552hlqp/bsdi3ddu8ebrfG+ZW5EJ9LXaLEx8ngRrnbnaghn6JqdMj2s6P7e1czIXQJCpQm0coI/bM+4WseqR2wkcHTEsGKvmntJo5oyQ+j3nrM=
+  file: ./sniproxy.jar
+  skip_cleanup: true
+  on:
+    tags: true
 
-  - provider: script
-    script: chmod +x ./docker_push.sh && ./docker_push.sh
-    on:
-      tags: true
+- provider: script
+  script: chmod +x ./docker_push.sh && ./docker_push.sh
+  on:
+    branch: master
+
+- provider: script
+  script: chmod +x ./docker_push.sh && ./docker_push.sh
+  on:
+    tags: true
