@@ -14,5 +14,5 @@ RUN mvn clean compile package
 FROM openjdk:10-jdk-slim
 
 COPY --from=jar /opt/app/target/sniproxy-1.0-SNAPSHOT-jar-with-dependencies.jar /opt/app/sniproxy.jar
-
+WORKDIR /opt/app
 CMD ["java", "-jar", "/opt/app/sniproxy.jar"]
